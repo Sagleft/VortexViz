@@ -1,6 +1,6 @@
 /* here we set the constraints for the sample */
-const priceChangeFrom = -5;
-const priceChangeTo = 5;
+const priceChangeFrom = -10;
+const priceChangeTo = 10;
 const rangeScale = 2;
 
 /* place here CSV data from https://matrixbot.io/tools/volatility */
