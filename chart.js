@@ -105,7 +105,15 @@ function getCircleColor(data = {}, maxPriceChange = 100, maxPumpDump = 100, maxA
     const green = 255 - Math.floor(255 * smoothTransition(normalizedPumpDump));
     const blue = Math.floor(255 * smoothTransition(normalizedAvgRange));
 
-    return rgbToHex(red, green, blue);
+    //return rgbToHex(red, green, blue);
+
+    return {
+        radialGradient: { cx: 0.4, cy: 0.3, r: 0.7 },
+        stops: [
+            [0, 'rgba(255,255,255,0.5)'],
+            [1, rgbToHex(red, green, blue)]
+        ]
+    };
 }
 
 function rgbToHex(r = 0, g = 0, b = 0) {
