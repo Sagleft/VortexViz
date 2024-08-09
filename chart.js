@@ -60,21 +60,20 @@ function filterPairs(data = [], minChange = -100, maxChange = 100) {
 */
 function convertPairDataToBubbles(data = []) {
     const maxPriceChange = Math.max(...data.map(item => item.priceChange));
-    const minAvgRange = Math.min(...data.map(item => item.avgRange));
     const maxAvgRange = Math.max(...data.map(item => item.avgRange));
     const maxPumpDump = Math.max(...data.map(item => item.pumpDump));
 
     return data.map(item => ({
         x: item.pumpDump,
         y: item.priceChange,
-        z: scaleBubbleSize(item.avgRange, minAvgRange, maxAvgRange),
+        z: scaleValue(rangeScale, item.avgRange),
         name: item.baseAsset,
-        color: getCircleColor(item, maxPriceChange, maxPumpDump, maxAvgRange),
+        color: getCircleColor(item, maxPriceChange, maxPumpDump, maxAvgRange)
     }));
 }
 
-function scaleBubbleSize(value = 1, min = 0, max = 100) {
-   return rangeScale * Math.exp(value - 0.5)
+function scaleValue(k = 1, value = 1) {
+   return k * Math.exp(value - 0.5)
 }
 
 function getCircleColor(data = {}, maxPriceChange = 100, maxPumpDump = 100, maxAvgRange = 2) {
@@ -82,11 +81,12 @@ function getCircleColor(data = {}, maxPriceChange = 100, maxPumpDump = 100, maxA
     const normalizedPriceChange = Math.abs(data.priceChange) / maxPriceChange;
     const normalizedPumpDump = data.pumpDump / maxPumpDump;
     const normalizedAvgRange = data.avgRange / maxAvgRange;
+    //const normalizedAvgRange = scaleValue(colorRangeScale, data.avgRange) / scaleValue(colorRangeScale, maxAvgRange);
 
     // Вычисляем значения R, G, B
-    const red = Math.round(255 * normalizedPriceChange);
-    const green = Math.round(255 * normalizedPumpDump);
-    const blue = Math.round(255 * normalizedAvgRange);
+    const red = Math.floor(255 * normalizedPriceChange);
+    const green = 255 - Math.floor(255 * normalizedPumpDump);
+    const blue = Math.floor(255 * normalizedAvgRange);
 
     return rgbToHex(red, green, blue);
 }
@@ -165,14 +165,15 @@ function loadChart() {
                 dataLabels: {
                     enabled: true,
                     format: '{point.name}'
-                }
+                },
             }
         },
 
         series: [{
-            type: 'bubble',
             data: chartData,
-            //colorByPoint: true,
+            marker: {
+                fillOpacity: 0.8
+            },
         }]
     
     });

@@ -1,5 +1,5 @@
 body {
-    background-color: #303030;
+    background-color: #12161c;
 }
 
 .highcharts-figure,
@@ -58,21 +58,20 @@ body {
 }
 
 .highcharts-background {
-    fill: rgb(48, 48, 48); /* Цвет фона графика */
+    fill: #12161c; /* Цвет фона графика */
 }
 
 .highcharts-title,
 .highcharts-subtitle {
-    fill: rgb(255, 255, 255); /* Цвет заголовка и подзаголовка */
+    fill: #e8e8e8 !important; /* Цвет заголовка и подзаголовка */
 }
 
-.highcharts-axis-title,
-.highcharts-axis-labels {
-    fill: rgb(214, 214, 214); /* Цвет заголовков осей и меток */
+.highcharts-axis-title {
+    fill: #e8e8e8 !important; /* Цвет заголовков осей и меток */
 }
 
 .highcharts-grid-line {
-    stroke: rgb(71, 71, 71); /* Цвет сетки */
+    stroke: rgb(47, 47, 47); /* Цвет сетки */
 }
 
 .highcharts-tooltip {
@@ -80,10 +79,23 @@ body {
     stroke: rgb(133, 133, 133); /* Цвет границы подсказки */
 }
 
-.highcharts-credits {
-    fill: rgb(173, 173, 173); /* Цвет текста кредитов */
+.highcharts-series {
+    stroke: rgb(76, 76, 76); /* Цвет линий серий */
 }
 
-.highcharts-series {
-    stroke: rgb(214, 214, 214); /* Цвет линий серий */
+.highcharts-axis-labels {
+    fill: #b1b1b1 !important;
+    color: #b1b1b1 !important;
+}
+
+.highcharts-plot-border {
+    stroke: #2a2e39 !important;
+}
+
+.highcharts-button-box {
+    fill: #1a1f26;
+}
+
+.highcharts-button-symbol {
+    stroke: #383e4d;
 }
