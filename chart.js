@@ -82,7 +82,7 @@ function convertPairDataToBubbles(data = [], maxPriceChange = 100, maxPumpDump =
 }
 
 function scaleValue(k = 1, value = 1) {
-   return k * Math.exp(value - 0.5)
+   return Math.exp(k * value - 0.5)
 }
 
 function smoothTransition(value) {
