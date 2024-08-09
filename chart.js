@@ -34,26 +34,35 @@ function loadChartData() {
 
     // filter pairs
     pairsData = filterByPriceChange(pairsData, priceChangeFrom, priceChangeTo);
-    console.log(pairsData);
+
+    // find range min, max
+    const min = Math.min(...pairsData.map(item => item.avgRange));
+    const max = Math.max(...pairsData.map(item => item.avgRange));
 
     // convert to chart data
-    return convertToXYZArray(pairsData);
+    return convertToXYZArray(pairsData, min, max);
 }
 
 function filterByPriceChange(data = [], minChange = -100, maxChange = 100) {
     return data.filter(item => {
-        return item.priceChange >= minChange && item.priceChange <= maxChange;
+        return item.priceChange >= minChange && 
+        item.priceChange <= maxChange &&
+        'baseAsset' in item;
     });
 }
 
 /* [{ x: 6.797970903047371, y: -1.3443262634527144, z: 0.45968315271284194, name: 'ZEN' }] */
-function convertToXYZArray(data = []) {
+function convertToXYZArray(data = [], min = 0, max = 100) {
     return data.map(item => ({
         x: item.pumpDump,
         y: item.priceChange,
-        z: item.avgRange,
+        z: scaleBubbleSize(item.avgRange, min, max),
         name: item.baseAsset
     }));
+}
+
+function scaleBubbleSize(value = 1, min = 0, max = 100) {
+   return rangeScale * Math.exp(value - 0.5)
 }
 
 function loadChart() {
@@ -94,10 +103,10 @@ function loadChart() {
             title: {
                 text: 'Pump Dump'
             },
-            labels: {
+            /*labels: {
                 format: '{value} gr'
-            },
-            plotLines: [{
+            },*/
+            /*plotLines: [{
                 color: 'black',
                 dashStyle: 'dot',
                 width: 2,
@@ -114,20 +123,20 @@ function loadChart() {
             }],
             accessibility: {
                 rangeDescription: 'Range: 60 to 100 grams.'
-            }
+            }*/
         },
 
         yAxis: {
             startOnTick: false,
             endOnTick: false,
             title: {
-                text: 'Price change / 24h, %'
+                text: 'Price change 24h, %'
             },
-            labels: {
+            /*labels: {
                 format: '{value} gr'
-            },
+            },*/
             maxPadding: 0.2,
-            plotLines: [{
+            /*plotLines: [{
                 color: 'black',
                 dashStyle: 'dot',
                 width: 2,
@@ -144,7 +153,7 @@ function loadChart() {
             }],
             accessibility: {
                 rangeDescription: 'Range: 0 to 160 grams.'
-            }
+            }*/
         },
 
         tooltip: {
