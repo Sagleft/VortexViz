@@ -73,7 +73,7 @@ function filterPairsByWhitelist(data = []) {
 */
 function convertPairDataToBubbles(data = [], maxPriceChange = 100, maxPumpDump = 100, maxAvgRange = 2) {
     return data.map(item => ({
-        x: item.pumpDump,
+        x: item.avgRange,
         y: item.priceChange,
         z: scaleValue(rangeScale, item.avgRange),
         name: item.baseAsset,
@@ -160,7 +160,7 @@ function loadChart() {
         xAxis: {
             gridLineWidth: 1,
             title: {
-                text: 'Pump Dump'
+                text: 'Volatility'
             },
         },
 

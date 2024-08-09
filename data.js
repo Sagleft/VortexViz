@@ -1,7 +1,7 @@
 /* here we set the constraints for the sample */
 const priceChangeFrom = -10;
 const priceChangeTo = 10;
-const rangeScale = 2;
+const rangeScale = 1;
 
 /* place here CSV data from https://matrixbot.io/tools/volatility */
 const volatilityData = `baseAsset,symbol,avgRange,volume,pumpDump,priceChange
