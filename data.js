@@ -2,7 +2,6 @@
 const priceChangeFrom = -5;
 const priceChangeTo = 5;
 const rangeScale = 2;
-const colorPriceScale = 3;
 
 /* place here CSV data from https://matrixbot.io/tools/volatility */
 const volatilityData = `baseAsset,symbol,avgRange,volume,pumpDump,priceChange
