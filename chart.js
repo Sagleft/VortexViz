@@ -73,12 +73,18 @@ function filterPairsByWhitelist(data = []) {
 */
 function convertPairDataToBubbles(data = [], maxPriceChange = 100, maxPumpDump = 100, maxAvgRange = 2) {
     return data.map(item => ({
-        x: item.pumpDump,
-        y: item.priceChange,
-        z: scaleValue(rangeScale, item.avgRange),
+        x: item.avgRange,
+        y: item.pumpDump,
+        z: gaussian(item.priceChange, 0.5),
         name: item.baseAsset,
         color: getCircleColor(item, maxPriceChange, maxPumpDump, maxAvgRange)
     }));
+}
+
+function gaussian(x, c) {
+    const a = 1; // максимальное значение по Y
+    const b = 0; // пик функции по X
+    return a * Math.exp(-((x - b) ** 2) / (2 * c ** 2));
 }
 
 function scaleValue(k = 1, value = 1) {
@@ -160,7 +166,7 @@ function loadChart() {
         xAxis: {
             gridLineWidth: 1,
             title: {
-                text: 'Pump Dump'
+                text: 'Volatility'
             },
         },
 
@@ -168,7 +174,7 @@ function loadChart() {
             startOnTick: false,
             endOnTick: false,
             title: {
-                text: 'Price change 24h, %'
+                text: 'Pump Dump' // old: Price change 24h, %
             },
             maxPadding: 0.2,
         },
