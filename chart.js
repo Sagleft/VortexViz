@@ -33,19 +33,32 @@ function loadChartData() {
     var pairsData = csvToArray(volatilityData);
 
     // filter pairs
-    pairsData = filterPairs(pairsData, priceChangeFrom, priceChangeTo);
+    pairsData = filterPairsByParams(pairsData);
+
+    const maxPriceChange = Math.max(...pairsData.map(item => item.priceChange));
+    const maxAvgRange = Math.max(...pairsData.map(item => item.avgRange));
+    const maxPumpDump = Math.max(...pairsData.map(item => item.pumpDump));
+
+    pairsData = filterPairsByWhitelist(pairsData);
 
     // convert to chart data
-    return convertPairDataToBubbles(pairsData);
+    return convertPairDataToBubbles(pairsData, maxPriceChange, maxPumpDump, maxAvgRange);
 }
 
-function filterPairs(data = [], minChange = -100, maxChange = 100) {
+function filterPairsByParams(data = []) {
     return data.filter(item => {
-        return item.priceChange >= minChange && 
-        item.priceChange <= maxChange &&
+        return item.priceChange >= priceChangeFrom && 
+        item.priceChange <= priceChangeTo &&
         'baseAsset' in item &&
         item.pumpDump >= 0 &&
-        item.avgRange >= 0;
+        item.avgRange >= 0 &&
+        isAssetInWhiteList(item.baseAsset);
+    });
+}
+
+function filterPairsByWhitelist(data = []) {
+    return data.filter(item => {
+        return isAssetInWhiteList(item.baseAsset);
     });
 }
 
@@ -58,11 +71,7 @@ function filterPairs(data = [], minChange = -100, maxChange = 100) {
     fillColor: '#dfdfdf'
 }]
 */
-function convertPairDataToBubbles(data = []) {
-    const maxPriceChange = Math.max(...data.map(item => item.priceChange));
-    const maxAvgRange = Math.max(...data.map(item => item.avgRange));
-    const maxPumpDump = Math.max(...data.map(item => item.pumpDump));
-
+function convertPairDataToBubbles(data = [], maxPriceChange = 100, maxPumpDump = 100, maxAvgRange = 2) {
     return data.map(item => ({
         x: item.pumpDump,
         y: item.priceChange,
@@ -76,17 +85,25 @@ function scaleValue(k = 1, value = 1) {
    return k * Math.exp(value - 0.5)
 }
 
+function smoothTransition(value) {
+    // Убедитесь, что значение находится в диапазоне от 0 до 1
+    if (value < 0) return 0;
+    if (value > 1) return 1;
+
+    // Используем квадратичную функцию для сглаживания
+    return value * value * (3 - 2 * value);
+}
+
 function getCircleColor(data = {}, maxPriceChange = 100, maxPumpDump = 100, maxAvgRange = 2) {
     // Нормализуем значения
     const normalizedPriceChange = Math.abs(data.priceChange) / maxPriceChange;
     const normalizedPumpDump = data.pumpDump / maxPumpDump;
     const normalizedAvgRange = data.avgRange / maxAvgRange;
-    //const normalizedAvgRange = scaleValue(colorRangeScale, data.avgRange) / scaleValue(colorRangeScale, maxAvgRange);
 
     // Вычисляем значения R, G, B
-    const red = Math.floor(255 * normalizedPriceChange);
-    const green = 255 - Math.floor(255 * normalizedPumpDump);
-    const blue = Math.floor(255 * normalizedAvgRange);
+    const red = Math.floor(255 * smoothTransition(normalizedPriceChange));
+    const green = 255 - Math.floor(255 * smoothTransition(normalizedPumpDump));
+    const blue = Math.floor(255 * smoothTransition(normalizedAvgRange));
 
     return rgbToHex(red, green, blue);
 }
