@@ -33,36 +33,78 @@ function loadChartData() {
     var pairsData = csvToArray(volatilityData);
 
     // filter pairs
-    pairsData = filterByPriceChange(pairsData, priceChangeFrom, priceChangeTo);
-
-    // find range min, max
-    const min = Math.min(...pairsData.map(item => item.avgRange));
-    const max = Math.max(...pairsData.map(item => item.avgRange));
+    pairsData = filterPairs(pairsData, priceChangeFrom, priceChangeTo);
 
     // convert to chart data
-    return convertToXYZArray(pairsData, min, max);
+    return convertPairDataToBubbles(pairsData);
 }
 
-function filterByPriceChange(data = [], minChange = -100, maxChange = 100) {
+function filterPairs(data = [], minChange = -100, maxChange = 100) {
     return data.filter(item => {
         return item.priceChange >= minChange && 
         item.priceChange <= maxChange &&
-        'baseAsset' in item;
+        'baseAsset' in item &&
+        item.pumpDump >= 0 &&
+        item.avgRange >= 0;
     });
 }
 
-/* [{ x: 6.797970903047371, y: -1.3443262634527144, z: 0.45968315271284194, name: 'ZEN' }] */
-function convertToXYZArray(data = [], min = 0, max = 100) {
+/*
+[{
+    x: 6.797970903047371,
+    y: -1.3443262634527144,
+    z: 0.45968315271284194,
+    name: 'ZEN',
+    fillColor: '#dfdfdf'
+}]
+*/
+function convertPairDataToBubbles(data = []) {
+    const maxPriceChange = Math.max(...data.map(item => item.priceChange));
+    const minAvgRange = Math.min(...data.map(item => item.avgRange));
+    const maxAvgRange = Math.max(...data.map(item => item.avgRange));
+    const maxPumpDump = Math.max(...data.map(item => item.pumpDump));
+
     return data.map(item => ({
         x: item.pumpDump,
         y: item.priceChange,
-        z: scaleBubbleSize(item.avgRange, min, max),
-        name: item.baseAsset
+        z: scaleBubbleSize(item.avgRange, minAvgRange, maxAvgRange),
+        name: item.baseAsset,
+        color: getCircleColor(item, maxPriceChange, maxPumpDump, maxAvgRange),
     }));
 }
 
 function scaleBubbleSize(value = 1, min = 0, max = 100) {
    return rangeScale * Math.exp(value - 0.5)
+}
+
+function getCircleColor(data = {}, maxPriceChange = 100, maxPumpDump = 100, maxAvgRange = 2) {
+    // Нормализуем значения
+    const normalizedPriceChange = Math.abs(data.priceChange) / maxPriceChange;
+    const normalizedPumpDump = data.pumpDump / maxPumpDump;
+    const normalizedAvgRange = data.avgRange / maxAvgRange;
+
+    // Вычисляем значения R, G, B
+    const red = Math.round(255 * normalizedPriceChange);
+    const green = Math.round(255 * normalizedPumpDump);
+    const blue = Math.round(255 * normalizedAvgRange);
+
+    return rgbToHex(red, green, blue);
+}
+
+function rgbToHex(r = 0, g = 0, b = 0) {
+    // Проверяем, что значения находятся в диапазоне от 0 до 255
+    if (r < 0 || r > 255 || g < 0 || g > 255 || b < 0 || b > 255) {
+        throw new Error("RGB значения должны быть в диапазоне от 0 до 255");
+    }
+
+    // Преобразуем каждую компоненту в HEX и добавляем ведущий ноль, если необходимо
+    const toHex = (component) => {
+        const hex = component.toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+    };
+
+    // Собираем итоговую строку в формате HEX
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
 function loadChart() {
@@ -103,27 +145,6 @@ function loadChart() {
             title: {
                 text: 'Pump Dump'
             },
-            /*labels: {
-                format: '{value} gr'
-            },*/
-            /*plotLines: [{
-                color: 'black',
-                dashStyle: 'dot',
-                width: 2,
-                value: 65,
-                label: {
-                    rotation: 0,
-                    y: 15,
-                    style: {
-                        fontStyle: 'italic'
-                    },
-                    text: 'Safe fat intake 65g/day'
-                },
-                zIndex: 3
-            }],
-            accessibility: {
-                rangeDescription: 'Range: 60 to 100 grams.'
-            }*/
         },
 
         yAxis: {
@@ -132,44 +153,12 @@ function loadChart() {
             title: {
                 text: 'Price change 24h, %'
             },
-            /*labels: {
-                format: '{value} gr'
-            },*/
             maxPadding: 0.2,
-            /*plotLines: [{
-                color: 'black',
-                dashStyle: 'dot',
-                width: 2,
-                value: 50,
-                label: {
-                    align: 'right',
-                    style: {
-                        fontStyle: 'italic'
-                    },
-                    text: 'Safe sugar intake 50g/day',
-                    x: -10
-                },
-                zIndex: 3
-            }],
-            accessibility: {
-                rangeDescription: 'Range: 0 to 160 grams.'
-            }*/
         },
 
         tooltip: {
             enabled: false
         },
-
-        /*tooltip: {
-            useHTML: true,
-            headerFormat: '<table>',
-            pointFormat: '<tr><th colspan="2"><h3>{point.value}</h3></th></tr>' +
-                '<tr><th>X:</th><td>{point.x}g</td></tr>' +
-                '<tr><th>Y:</th><td>{point.y}g</td></tr>' +
-                '<tr><th>Z:</th><td>{point.z}%</td></tr>',
-            footerFormat: '</table>',
-            followPointer: true
-        },*/
 
         plotOptions: {
             series: {
@@ -181,8 +170,9 @@ function loadChart() {
         },
 
         series: [{
+            type: 'bubble',
             data: chartData,
-            colorByPoint: true
+            //colorByPoint: true,
         }]
     
     });

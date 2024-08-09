@@ -1,3 +1,7 @@
+body {
+    background-color: #303030;
+}
+
 .highcharts-figure,
 .highcharts-data-table table {
     min-width: 310px;
@@ -51,4 +55,35 @@
 
 .highcharts-credits {
     display: none;
+}
+
+.highcharts-background {
+    fill: rgb(48, 48, 48); /* Цвет фона графика */
+}
+
+.highcharts-title,
+.highcharts-subtitle {
+    fill: rgb(255, 255, 255); /* Цвет заголовка и подзаголовка */
+}
+
+.highcharts-axis-title,
+.highcharts-axis-labels {
+    fill: rgb(214, 214, 214); /* Цвет заголовков осей и меток */
+}
+
+.highcharts-grid-line {
+    stroke: rgb(71, 71, 71); /* Цвет сетки */
+}
+
+.highcharts-tooltip {
+    fill: rgb(48, 48, 48); /* Цвет фона подсказки */
+    stroke: rgb(133, 133, 133); /* Цвет границы подсказки */
+}
+
+.highcharts-credits {
+    fill: rgb(173, 173, 173); /* Цвет текста кредитов */
+}
+
+.highcharts-series {
+    stroke: rgb(214, 214, 214); /* Цвет линий серий */
 }
