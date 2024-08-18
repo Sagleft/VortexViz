@@ -94,6 +94,7 @@ body {
 
 .highcharts-button-box {
     fill: #1a1f26;
+    stroke: none;
 }
 
 .highcharts-button-symbol {
