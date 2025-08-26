@@ -36,13 +36,21 @@ function loadChartData() {
     pairsData = filterPairsByParams(pairsData);
 
     const maxPriceChange = Math.max(...pairsData.map(item => item.priceChange));
-    const maxAvgRange = Math.max(...pairsData.map(item => item.avgRange));
+    const maxAvgRange = Math.max(...pairsData.map(item => item.range));
     const maxPumpDump = Math.max(...pairsData.map(item => item.pumpDump));
+    const minOrder = Math.min(...pairsData.map(item => item.minOrder));
+    const maxOrder = Math.max(...pairsData.map(item => item.minOrder));
 
     pairsData = filterPairsByWhitelist(pairsData);
 
     // convert to chart data
-    return convertPairDataToBubbles(pairsData, maxPriceChange, maxPumpDump, maxAvgRange);
+    return convertPairDataToBubbles(
+        pairsData, 
+        maxPriceChange, 
+        maxPumpDump, 
+        maxAvgRange,
+        minOrder, maxOrder,
+    );
 }
 
 function filterPairsByParams(data = []) {
@@ -51,7 +59,8 @@ function filterPairsByParams(data = []) {
         item.priceChange <= priceChangeTo &&
         'baseAsset' in item &&
         item.pumpDump >= 0 &&
-        item.avgRange >= 0 &&
+        item.range >= 0 &&
+        item.minOrder <= maxOrder &&
         isAssetInWhiteList(item.baseAsset);
     });
 }
@@ -71,13 +80,25 @@ function filterPairsByWhitelist(data = []) {
     fillColor: '#dfdfdf'
 }]
 */
-function convertPairDataToBubbles(data = [], maxPriceChange = 100, maxPumpDump = 100, maxAvgRange = 2) {
+function convertPairDataToBubbles(
+    data = [], 
+    maxPriceChange = 100, 
+    maxPumpDump = 100, 
+    maxAvgRange = 2,
+    minOrder = 1, maxOrder = 10,
+) {
     return data.map(item => ({
         x: item.pumpDump,
         y: item.priceChange,
-        z: scaleValue(rangeScale, item.avgRange),
+        z: scaleValue(rangeScale, item.range),
         name: item.baseAsset,
-        color: getCircleColor(item, maxPriceChange, maxPumpDump, maxAvgRange)
+        color: getCircleColor(
+            item, 
+            maxPriceChange, 
+            maxPumpDump, 
+            maxAvgRange,
+            //minOrder, maxOrder,
+        )
     }));
 }
 
@@ -94,18 +115,53 @@ function smoothTransition(value) {
     return value * value * (3 - 2 * value);
 }
 
-function getCircleColor(data = {}, maxPriceChange = 100, maxPumpDump = 100, maxAvgRange = 2) {
+function normalizeValueInverted(minValue, maxValue, value) {
+    // Проверяем, что все входные значения положительные
+    if (minValue <= 0 || maxValue <= 0 || value <= 0) {
+        throw new Error("Все значения должны быть положительными и больше нуля.");
+    }
+
+    // Проверяем, что minValue меньше maxValue
+    if (minValue >= maxValue) {
+        throw new Error("minValue должно быть меньше maxValue.");
+    }
+
+    // Нормализуем значение
+    const normalized = (maxValue - value) / (maxValue - minValue);
+
+    // Ограничиваем результат в диапазоне [0, 1]
+    return Math.max(0, Math.min(1, normalized));
+}
+
+function getCircleColor(
+    data = {}, 
+    maxPriceChange = 100, 
+    maxPumpDump = 100, 
+    maxAvgRange = 2,
+    //minOrder = 1, maxOrder = 10,
+) {
     // Нормализуем значения
     const normalizedPriceChange = Math.abs(data.priceChange) / maxPriceChange;
     const normalizedPumpDump = data.pumpDump / maxPumpDump;
-    const normalizedAvgRange = data.avgRange / maxAvgRange;
+    const normalizedAvgRange = data.range / maxAvgRange;
 
     // Вычисляем значения R, G, B
     const red = Math.floor(255 * smoothTransition(normalizedPriceChange));
     const green = 255 - Math.floor(255 * smoothTransition(normalizedPumpDump));
     const blue = Math.floor(255 * smoothTransition(normalizedAvgRange));
+    //const alpha = normalizeValueInverted(minOrder, maxOrder, data.minOrder);
 
-    return rgbToHex(red, green, blue);
+    return formatRGBAColor(red, green, blue, 1);
+    /*return {
+        R: red,
+        G: green,
+        B: blue,
+        A: normalizeValueInverted(minOrder, maxOrder, data.minOrder),
+    }*/
+}
+
+function formatRGBAColor(red = 0, green = 0, blue = 0, alpha = 1) {
+    return "rgba("+red+","+green+","+blue+","+alpha+")";
 }
 
 function rgbToHex(r = 0, g = 0, b = 0) {
